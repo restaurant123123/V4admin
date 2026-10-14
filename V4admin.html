@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>鼎盛轩 - 智能云端后台 (Pro版)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -14,6 +14,8 @@
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 10px; }
         ::-webkit-scrollbar-track { background: transparent; }
+        /* 防止移动端输入框聚焦时页面自动放大变形 */
+        input, select, textarea { font-size: 16px !important; }
     </style>
 </head>
 <body class="text-slate-800 pb-20">
@@ -80,7 +82,7 @@
             </h2>
             <div class="relative">
                 <div class="flex flex-col md:flex-row gap-4">
-                    <input type="text" id="search-input" oninput="handleSearchInput()" placeholder="输入手机号任意数字（支持后几位模糊联想）..." class="flex-1 px-5 py-4 bg-white border-2 border-slate-200 rounded-xl text-lg font-bold text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50 transition shadow-sm placeholder-slate-400">
+                    <input type="text" id="search-input" oninput="handleSearchInput()" placeholder="输入手机号任意数字（支持后几位模糊联想）..." class="flex-1 px-5 py-4 bg-white border-2 border-slate-200 rounded-xl font-bold text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50 transition shadow-sm placeholder-slate-400">
                     <button onclick="executeDirectSearch()" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-black text-lg shadow-lg hover:shadow-blue-500/30 transition flex items-center justify-center gap-2">
                         查询档案
                     </button>
@@ -309,7 +311,7 @@
             document.getElementById('stat-sleeping').innerText = categorizedData.sleeping.length;
         }
 
-        // 时价核算弹窗控制
+        // 时价核算弹窗控制（已优化手机端输入框与按钮排版比例）
         function openMarketPriceModal() {
             const container = document.getElementById('market-price-queue-list');
             container.innerHTML = '';
@@ -319,15 +321,15 @@
             } else {
                 marketQueue.forEach(q => {
                     container.innerHTML += `
-                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col gap-2">
+                        <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 flex flex-col gap-2.5">
                             <div class="flex justify-between items-center">
-                                <span class="font-black text-slate-800">📱 ${q.phone} (桌号: ${q.table})</span>
+                                <span class="font-black text-slate-800 text-sm">📱 ${q.phone} (桌号: ${q.table})</span>
                                 <span class="text-xs text-slate-400">${new Date(q.timestamp).toLocaleTimeString()}</span>
                             </div>
                             <p class="text-xs text-amber-700 font-bold">海鲜明细：${q.items.join('、')}</p>
-                            <div class="flex gap-2 mt-1">
-                                <input type="number" id="price-input-${q.id}" placeholder="输入实际总价 (RM)" class="flex-1 px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm font-bold">
-                                <button onclick="confirmMarketPrice('${q.id}', '${q.phone}')" class="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg font-bold text-sm shadow">确认入账</button>
+                            <div class="flex flex-col sm:flex-row gap-2 mt-1">
+                                <input type="number" id="price-input-${q.id}" placeholder="输入实际总价 (RM)" class="w-full sm:flex-1 px-3 py-2 bg-white border border-slate-300 rounded-lg text-base font-bold">
+                                <button onclick="confirmMarketPrice('${q.id}', '${q.phone}')" class="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white px-5 py-2 rounded-lg font-bold text-sm shadow whitespace-nowrap">确认入账</button>
                             </div>
                         </div>
                     `;
