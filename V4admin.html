@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>鼎盛轩 - 智能云端后台 (Pro版)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -14,8 +14,6 @@
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 10px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        /* 防止移动端输入框聚焦时页面自动放大变形 */
-        input, select, textarea { font-size: 16px !important; }
     </style>
 </head>
 <body class="text-slate-800 pb-20">
@@ -26,7 +24,7 @@
             <span class="text-3xl">📊</span>
             <div>
                 <h1 class="text-xl md:text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-200">鼎盛轩 · 智能云端 CRM</h1>
-                <p class="text-xs text-slate-400 mt-0.5">全息顾客数据洞察引擎 V3.2 (含时价核算与营销模板)</p>
+                <p class="text-xs text-slate-400 mt-0.5">全息顾客数据洞察引擎 V3.3 (含历史拜访明细穿透)</p>
             </div>
         </div>
         <div class="flex items-center space-x-3 bg-slate-800 p-1.5 rounded-lg border border-slate-700">
@@ -41,20 +39,6 @@
 
     <main class="max-w-7xl mx-auto p-4 md:p-8 space-y-8">
         
-        <!-- ⚠️ 时价菜品待核算通知横幅 (柜台闪电补价) -->
-        <div id="market-price-banner" class="hidden bg-gradient-to-r from-amber-500 to-orange-600 text-white p-4 rounded-2xl shadow-lg flex flex-col md:flex-row justify-between items-center gap-4">
-            <div class="flex items-center gap-3">
-                <span class="text-2xl animate-bounce">⚠️</span>
-                <div>
-                    <h3 class="font-black text-lg">有时尚海鲜订单等待收银核算价格！</h3>
-                    <p class="text-xs text-amber-100">顾客点选了时价海鲜，需在后台录入实际称重价格以准确计入 VIP 消费总额。</p>
-                </div>
-            </div>
-            <button onclick="openMarketPriceModal()" class="bg-white text-orange-600 font-black px-5 py-2.5 rounded-xl shadow hover:bg-amber-50 transition">
-                立即去核算价格 ➔
-            </button>
-        </div>
-
         <!-- 第一段：动态对比大盘 -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="dashboard-cards">
             <div class="glass-card tech-shadow p-5 rounded-xl border-t-4 border-blue-500 relative overflow-hidden group">
@@ -82,7 +66,7 @@
             </h2>
             <div class="relative">
                 <div class="flex flex-col md:flex-row gap-4">
-                    <input type="text" id="search-input" oninput="handleSearchInput()" placeholder="输入手机号任意数字（支持后几位模糊联想）..." class="flex-1 px-5 py-4 bg-white border-2 border-slate-200 rounded-xl font-bold text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50 transition shadow-sm placeholder-slate-400">
+                    <input type="text" id="search-input" oninput="handleSearchInput()" placeholder="输入手机号任意数字（支持后几位模糊联想）..." class="flex-1 px-5 py-4 bg-white border-2 border-slate-200 rounded-xl text-lg font-bold text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50 transition shadow-sm placeholder-slate-400">
                     <button onclick="executeDirectSearch()" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-black text-lg shadow-lg hover:shadow-blue-500/30 transition flex items-center justify-center gap-2">
                         查询档案
                     </button>
@@ -153,18 +137,6 @@
 
     </main>
 
-    <!-- 时价核算弹窗 -->
-    <div id="market-price-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
-            <h3 class="text-xl font-black text-slate-800">⚖️ 时价海鲜价格核算中心</h3>
-            <p class="text-xs text-slate-500">请核对以下待计费的称重海鲜，输入实际总金额并点击确认入账：</p>
-            <div id="market-price-queue-list" class="space-y-3 max-h-60 overflow-y-auto"></div>
-            <div class="flex justify-end pt-2">
-                <button onclick="closeMarketPriceModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-6 py-2.5 rounded-xl font-bold transition">关闭</button>
-            </div>
-        </div>
-    </div>
-
     <!-- 丝滑 Toast 提示框 -->
     <div id="toast" class="fixed top-6 left-1/2 transform -translate-x-1/2 bg-slate-900 text-white px-6 py-3 rounded-full text-sm font-bold shadow-2xl opacity-0 transition-opacity duration-300 pointer-events-none z-50">
         提示信息
@@ -183,13 +155,11 @@
         const db = firebase.firestore();
 
         let allMembers = [];       
-        let marketQueue = [];
         let categorizedData = { vip: [], loyal: [], new: [], sleeping: [], all: [] };
         let activeMarketingCategory = null;
 
         document.addEventListener("DOMContentLoaded", () => {
             fetchGlobalData();
-            fetchMarketQueue();
         });
 
         function showToast(msg) {
@@ -207,29 +177,15 @@
                 
                 categorizeCustomers();
                 processDashboardData();
+
+                // 👉 新增功能：进入网页时，自动默认展开并显示“历史总库”
+                toggleMarketingList('all');
             } catch (error) {
                 console.error("数据拉取失败:", error);
             }
         }
 
-        async function fetchMarketQueue() {
-            try {
-                const snapshot = await db.collection('market_price_queue').where('status', '==', 'pending').get();
-                marketQueue = [];
-                snapshot.forEach(doc => marketQueue.push({ id: doc.id, ...doc.data() }));
-
-                const banner = document.getElementById('market-price-banner');
-                if (marketQueue.length > 0) {
-                    banner.classList.remove('hidden');
-                } else {
-                    banner.classList.add('hidden');
-                }
-            } catch (error) {
-                console.error("获取时价队列失败:", error);
-            }
-        }
-
-        // 会员分层标准：VIP > RM1000, 回头客 >= 5次
+        // 会员分层标准：VIP > RM1000, 回头客 >= 5次[cite: 7]
         function getCustomerLevel(m) {
             let spent = Number(m.totalSpent || 0);
             let orders = Number(m.totalOrders || 0);
@@ -311,68 +267,7 @@
             document.getElementById('stat-sleeping').innerText = categorizedData.sleeping.length;
         }
 
-        // 时价核算弹窗控制（已优化手机端输入框与按钮排版比例）
-        function openMarketPriceModal() {
-            const container = document.getElementById('market-price-queue-list');
-            container.innerHTML = '';
-            
-            if (marketQueue.length === 0) {
-                container.innerHTML = `<p class="text-center text-slate-400 py-4">当前没有待核算的时价海鲜订单</p>`;
-            } else {
-                marketQueue.forEach(q => {
-                    container.innerHTML += `
-                        <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 flex flex-col gap-2.5">
-                            <div class="flex justify-between items-center">
-                                <span class="font-black text-slate-800 text-sm">📱 ${q.phone} (桌号: ${q.table})</span>
-                                <span class="text-xs text-slate-400">${new Date(q.timestamp).toLocaleTimeString()}</span>
-                            </div>
-                            <p class="text-xs text-amber-700 font-bold">海鲜明细：${q.items.join('、')}</p>
-                            <div class="flex flex-col sm:flex-row gap-2 mt-1">
-                                <input type="number" id="price-input-${q.id}" placeholder="输入实际总价 (RM)" class="w-full sm:flex-1 px-3 py-2 bg-white border border-slate-300 rounded-lg text-base font-bold">
-                                <button onclick="confirmMarketPrice('${q.id}', '${q.phone}')" class="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white px-5 py-2 rounded-lg font-bold text-sm shadow whitespace-nowrap">确认入账</button>
-                            </div>
-                        </div>
-                    `;
-                });
-            }
-            document.getElementById('market-price-modal').classList.remove('hidden');
-        }
-
-        function closeMarketPriceModal() {
-            document.getElementById('market-price-modal').classList.add('hidden');
-        }
-
-        async function confirmMarketPrice(queueId, phone) {
-            const valInput = document.getElementById(`price-input-${queueId}`).value;
-            const price = Number(valInput);
-            if (!price || price <= 0) {
-                showToast("请输入正确的总金额！");
-                return;
-            }
-
-            try {
-                // 更新队列状态
-                await db.collection('market_price_queue').doc(queueId).update({ status: 'completed', finalPrice: price });
-
-                // 累加到该顾客总消费中
-                const memberRef = db.collection('restaurant_members').doc(phone);
-                const doc = await memberRef.get();
-                if (doc.exists) {
-                    let currentSpent = Number(doc.data().totalSpent || 0);
-                    await memberRef.update({ totalSpent: currentSpent + price });
-                }
-
-                showToast("✅ 时价金额核算成功并已计入 VIP 总额！");
-                closeMarketPriceModal();
-                fetchMarketQueue();
-                fetchGlobalData();
-            } catch (e) {
-                console.error("核算失败:", e);
-                showToast("❌ 操作失败");
-            }
-        }
-
-        // 实时模糊搜索
+        // 实时模糊搜索[cite: 7]
         function handleSearchInput() {
             const query = document.getElementById('search-input').value.trim();
             const suggBox = document.getElementById('search-suggestions');
@@ -430,6 +325,7 @@
             renderProfileCard(matches);
         }
 
+        // 渲染专属档案卡（已升级：支持展示每一次来的日期、点餐内容、当天消费）
         function renderProfileCard(target) {
             const resultArea = document.getElementById('search-result-area');
             resultArea.classList.remove('hidden');
@@ -441,6 +337,48 @@
                 let topDish = (m.topDishes && m.topDishes.length > 0) ? m.topDishes.join('、') : '暂无数据';
                 let templateText = document.getElementById('wa-template-select').value;
                 let waLink = `https://wa.me/${formatPhoneForWA(m.phone)}?text=${encodeURIComponent(templateText)}`;
+
+                // 构建历史拜访明细列表 HTML
+                let visitsHtml = '';
+                if (m.visits && m.visits.length > 0) {
+                    visitsHtml = `
+                        <div class="mt-5 pt-4 border-t border-slate-100">
+                            <p class="text-xs font-black text-slate-700 mb-3 flex items-center gap-1.5">
+                                <span>📜</span> 历史拜访与消费明细记录 (共来过 <span class="text-blue-600">${m.visits.length}</span> 次)：
+                            </p>
+                            <div class="space-y-2.5 max-h-60 overflow-y-auto pr-1">
+                    `;
+                    
+                    // 按时间倒序排列（最近的一次排在最上面）
+                    let sortedVisits = [...m.visits].sort((a, b) => new Date(b.date) - new Date(a.date));
+                    sortedVisits.forEach((v, idx) => {
+                        let visitDate = new Date(v.date).toLocaleString();
+                        let visitTotal = Number(v.total || 0).toFixed(2);
+                        let itemsStr = '无明细记录';
+                        if (v.items && Array.isArray(v.items)) {
+                            itemsStr = v.items.map(i => `${i.name} x${i.qty} ${i.note ? '('+i.note+')' : ''}`).join('、');
+                        }
+                        visitsHtml += `
+                            <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs flex flex-col gap-1.5 shadow-sm">
+                                <div class="flex justify-between items-center font-bold text-slate-800">
+                                    <span class="text-blue-600">第 ${sortedVisits.length - idx} 次光临</span>
+                                    <span class="text-slate-500 font-normal">⏱️ ${visitDate}</span>
+                                    <span class="text-amber-600 font-mono font-black text-sm">当日消费: RM ${visitTotal}</span>
+                                </div>
+                                <div class="text-slate-600 bg-white p-2 rounded-lg border border-slate-100">
+                                    <strong class="text-slate-700">点餐内容：</strong>${itemsStr}
+                                </div>
+                            </div>
+                        `;
+                    });
+                    visitsHtml += `</div></div>`;
+                } else {
+                    visitsHtml = `
+                        <div class="mt-5 pt-4 border-t border-slate-100 text-xs text-slate-400 bg-slate-50 p-3 rounded-xl text-center">
+                            💡 提示：该顾客暂无详细拜访明细记录（历史老数据或未通过收银台结账）。
+                        </div>
+                    `;
+                }
 
                 resultArea.innerHTML += `
                     <div class="bg-white border-2 border-slate-100 p-6 rounded-2xl shadow-sm hover:border-blue-200 transition relative mb-4">
@@ -474,12 +412,13 @@
                                 <p class="text-sm font-bold text-slate-700 line-clamp-1 mt-1">${topDish}</p>
                             </div>
                         </div>
+                        ${visitsHtml}
                     </div>
                 `;
             });
         }
 
-        // 营销面板与模板群发
+        // 营销面板与模板群发[cite: 7]
         function toggleMarketingList(cat) {
             const container = document.getElementById('marketing-list-container');
             const titleElem = document.getElementById('marketing-title');
